@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strapiapp
+spec:
+  selector:
+    matchLabels:
+      app: strapiapp
+
+  template:
+    metadata:
+      labels:
+        app: strapiapp
+    spec:
+      containers:
+      - name: strapiapp
+        image: mauriciolucas22/strapapp:v2
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 1337
+            # httpHeaders:
+            # - name: Custom-Header
+            #   value: Awesome
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          failureThreshold: 10
+
+        startupProbe:
+          httpGet:
+            path: /_health
+            port: 1337
+          failureThreshold: 50
+          periodSeconds: 30
+
+        envFrom:
+            - configMapRef:
+                name: strapapp-config
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 1337
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: strapiapp-service
+spec:
+  selector:
+    app: strapiapp
+  ports:
+  - port: 1337
+    targetPort: 1337
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: strapapp-config
+data:
+  key: value
+  HOST: value
+  PORT: value
+  APP_KEYS: value
+  API_TOKEN_SALT: value
+  ADMIN_JWT_SECRET: value
+  JWT_SECRET: value
+  DATABASE_HOST: value
+  DATABASE_PORT: value
+  DATABASE_NAME: value
+  DATABASE_USERNAME: value
+  DATABASE_PASSWORD: value
+  DATABASE_SSL: value
+
